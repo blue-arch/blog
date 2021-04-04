@@ -1,0 +1,22 @@
+spring:
+  profiles:
+    active: pro
+  jackson:
+    serialization:
+      FAIL_ON_EMPTY_BEANS: false
+  servlet:
+    multipart:
+      max-file-size: 5MB # 限制文件上传的大小
+  datasource:
+    hikari:
+      max-lifetime: 30000
+mybatis:
+  type-aliases-package: fun.dongin.mapper
+#fdfs:
+#  so-timeout: 1501 # 超时时间
+#  connect-timeout: 601 # 连接超时时间
+#  thumb-image: # 缩略图
+#    width: 100
+#    height: 100
+#  tracker-list: # tracker地址：你的虚拟机服务器地址+端口（默认是22122）
+#    - ENC(2dfNoUual8RdwZ5p7E2XVGb3h7eS3AtVNHcyT1GHceE=)

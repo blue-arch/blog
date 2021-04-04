@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首页</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/semantic-ui/2.2.10/semantic.min.css">
+    <link rel="stylesheet" href="css/me.css">
+</head>
+
+
+<body>
+<div id="app">
+    <!-- 导航 -->
+    <nav class="ui inverted attached segment m-padded-tb-mini m-shadow-small">
+        <div class="ui container">
+            <div class="ui inverted secondary stackable menu">
+                <h2 class="ui teal header item">Blog</h2>
+                <a href="index.html" class="m-item item m-mobile-hide active">
+                    <i class="mini home icon"></i>首页</a>
+                <a href="types.html" class="m-item item m-mobile-hide">
+                    <i class="mini idea icon"></i>分类</a>
+                <a href="tags.html" class="m-item item m-mobile-hide">
+                    <i class="mini tag icon"></i>标签</a>
+                <a href="archives.html" class="m-item item m-mobile-hide">
+                    <i class="mini clone icon"></i>归档</a>
+                <a href="message.html" class="m-item item m-mobile-hide">
+                    <i class="mini comment alternate icon"></i>留言</a>
+                <a href="about.html" class="m-item item m-mobile-hide">
+                    <i class="mini info icon"></i>关于本站</a>
+                <div class="right m-item item m-mobile-hide">
+                    <div class="ui icon inverted transparent input">
+                        <input type="text" placeholder="请输入标题..." v-model.lazy="blogParams.title">
+                        <i class="search link icon"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <a href="#" class="ui menu toggle icon black button m-right-top m-mobile-show">
+            <i class="sidebar icon"></i>
+        </a>
+    </nav>
+    <!-- 中间部分 -->
+    <div class="m-container m-padded-tb-big">
+        <div class="ui container">
+            <div class="ui stackable grid">
+                <!-- 左边博客列表 -->
+                <div class="eleven wide column">
+                    <!-- header -->
+                    <div class="ui top attached segment">
+                        <div class="ui middle aligned two column grid">
+                            <div class="column">
+                                <h3 class="ui teal header">博客</h3>
+                            </div>
+                            <div class="right aligned column">
+                                共 <h2 class="ui orange header m-inline-block m-text-thin"><span v-text="total">24</span>
+                            </h2> 篇
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- content -->
+                    <div class="ui attached segment" v-if="blogList.length !== 0 || topBlogList.length != 0">
+                        <!-- 置顶博客列表 -->
+                        <div class="ui padded vertical secondary segment m-padded-tb-large m-mobile-lr-clear"
+                             :class="{grey : index !== 0}"
+                             v-show="topBlogList.length !== 0"
+                             v-for="(topBlog, index) in topBlogList" :key="topBlog.id">
+                            <div class="ui mobile reversed stackable grid">
+                                <div class="eleven wide column">
+                                    <h3 class="ui header">
+                                        <span class="ui mini grey basic left pointing label">置顶</span>
+                                        <span class="ui mini red basic left pointing label"
+                                              v-show="topBlog.views >= 100">热门</span>
+                                        <span class="ui mini basic left pointing label"
+                                              :class="[{orange : topBlog.flag === '转载'},
+                                        {teal : topBlog.flag === '原创'},{blue : topBlog.flag === '翻译'}]"
+                                              v-text="topBlog.flag">
+                                           原创
+                                        </span>
+                                        <a :href="'detail.html?id=' + topBlog.id" style="color: black"
+                                           v-text="topBlog.title">Hello,
+                                            Blog!</a>
+                                    </h3>
+                                    <a class="m-text" :href="'detail.html?id=' + topBlog.id" style="color: black;">
+                                        <span v-text="topBlog.description.length > 80 ? topBlog.description.substr(0, 80) + '...' :
+                                        topBlog.description">loading...</span>
+                                    </a>
+                                    <div class="ui stackable grid m-margin-top">
+                                        <div class="eleven wide column">
+                                            <div class="ui mini horizontal link list">
+                                                <div class="item">
+                                                    <img :src="topBlog.user.avatar" alt=""
+                                                         class="ui avatar image">
+                                                    <div class="content"><a class="header"><span
+                                                            v-text="topBlog.user.nickname">Colin</span></a>
+                                                    </div>
+                                                </div>
+                                                <div class="item">
+                                                    <i class="calendar icon"></i>
+                                                    <span v-text="topBlog.createTime">
+                                                        2020-05-14 02:24:10
+                                                    </span>
+                                                </div>
+                                                <div class="item">
+                                                    <i class="eye icon"></i> <span v-text="topBlog.views">24</span>
+                                                    &nbsp;&nbsp;
+                                                    <span v-show="isAdmin">
+                                                    <i class="heart icon"></i> <a
+                                                            @click="toggleTop(topBlog.id)">取消置顶</a>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="right aligned five wide column">
+                                            <a target="_blank" :href="'types.html?typeName=' + topBlog.type.name"
+                                               class="ui teal basic label m-padded-tiny m-text-thin"><span
+                                                    v-text="topBlog.type.name">Java</span></a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="five wide column">
+                                    <a target="_blank">
+                                        <img :src="topBlog.firstPicture" alt=""
+                                             class="ui rounded image">
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 普通博客列表 -->
+                        <div class="ui padded vertical segment m-padded-tb-large m-mobile-lr-clear"
+                             v-for="(blog, index) in blogList" :key="blog.id">
+                            <div class="ui mobile reversed stackable grid">
+                                <div class="eleven wide column">
+                                    <h3 class="ui header">
+                                        <span class="ui mini red basic left pointing label"
+                                              v-show="blog.views >= 100">热门</span>
+                                        <span class="ui mini basic left pointing label"
+                                              :class="[{orange : blog.flag === '转载'},
+                                        {teal : blog.flag === '原创'},{blue : blog.flag === '翻译'}]">
+                                            <span v-text="blog.flag">原创</span>
+                                        </span>
+                                        <a :href="'detail.html?id=' + blog.id" style="color: black" v-text="blog.title">Hello,
+                                            Blog!</a>
+                                    </h3>
+                                    <a class="m-text" :href="'detail.html?id=' + blog.id" style="color: black;">
+                                        <span v-text="blog.description.length > 80 ? blog.description.substr(0, 80) + '...' :
+                                        blog.description">loading...</span>
+                                    </a>
+                                    <div class="ui stackable grid m-margin-top">
+                                        <div class="eleven wide column">
+                                            <div class="ui mini horizontal link list">
+                                                <div class="item">
+                                                    <img :src="blog.user.avatar" alt=""
+                                                         class="ui avatar image">
+                                                    <div class="content"><a class="header"><span
+                                                            v-text="blog.user.nickname">Colin</span></a>
+                                                    </div>
+                                                </div>
+                                                <div class="item">
+                                                    <i class="calendar icon"></i>
+                                                    <span v-text="blog.createTime">
+                                                        2020-05-14 02:24:10
+                                                    </span>
+                                                </div>
+                                                <div class="item">
+                                                    <i class="eye icon"></i> <span v-text="blog.views">24</span> &nbsp;&nbsp;
+                                                    <span v-show="isAdmin">
+                                                        <i class="heart outline icon"></i> <a
+                                                            @click="toggleTop(blog.id)">置顶</a>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="right aligned five wide column">
+                                            <a target="_blank" :href="'types.html?typeName=' + blog.type.name"
+                                               class="ui teal basic label m-padded-tiny m-text-thin"><span
+                                                    v-text="blog.type.name">Java</span></a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="five wide column">
+                                    <a target="_blank">
+                                        <img :src="blog.firstPicture" alt=""
+                                             class="ui rounded image">
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- footer -->
+                    <div class="ui bottom attached segment" v-if="blogList.length !== 0 || topBlogList.length != 0">
+                        <div class="ui middle aligned two column grid">
+                            <div class="column">
+                                <div class="ui mini left floated pagination menu">
+                                    <a class="icon item" :class="{disabled : blogParams.page === 1}" @click="prev()">
+                                        <i class="left chevron icon"></i>
+                                    </a>
+                                    <a class="item" v-for="currPage in Math.min(5, totalPage)"
+                                       :class="{active : index(currPage) === blogParams.page}"
+                                       @click="blogParams.page = index(currPage)" v-text="index(currPage)">1
+                                    </a>
+                                    <a class="icon item" :class="{disabled : blogParams.page === totalPage}"
+                                       @click="next()">
+                                        <i class="right chevron icon"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="right aligned column">
+                                共 <h2 class="ui orange header m-inline-block m-text-thin"><span
+                                    v-text="totalPage">24</span></h2> 页
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 加载器 -->
+                    <div class="ui top attached teal segment m-padded-tb-big" v-else>
+                        <div class="ui active centered inverted dimmer">
+                            <div class="ui text loader">加载中</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- 右边top -->
+                <div class="five wide column">
+                    <!-- 分类 -->
+                    <div class="ui segments">
+                        <div class="ui secondary segment">
+                            <div class="ui two column grid">
+                                <div class="column">
+                                    <i class="idea icon"></i> 分类
+                                </div>
+                                <div class="right aligned column">
+                                    <a href="types.html" target="_blank">more <i
+                                            class="angle double right icon"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ui teal segment">
+                            <div class="ui fluid vertical menu">
+                                <a :href="'types.html?id=' + type.id" target="_blank" class="item"
+                                   v-for="(type, index) in types" :key="index">
+                                    <span v-text="type.name">Java</span>
+                                    <div class="ui teal basic left pointing label"><span v-text="type.blogList.length">24</span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 标签 -->
+                    <div class="ui segments m-margin-top-large">
+                        <div class="ui secondary segment">
+                            <div class="ui two column grid">
+                                <div class="column">
+                                    <i class="tags icon"></i> 标签
+                                </div>
+                                <div class="right aligned column">
+                                    <a href="tags.html" target="_blank">more <i class="angle double right icon"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="ui teal segment">
+                            <a :href="'tags.html?id=' + tag.id" target="_blank"
+                               class="ui teal basic left pointing label m-margin-tiny"
+                               v-for="(tag, index) in tags" :key="index">
+                                <span v-text="tag.name">Java</span>
+                                <div class="detail"><span v-text="tag.blogList.length">24</span></div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 最新推荐 -->
+                    <div class="ui segments m-margin-top-large">
+                        <div class="ui secondary segment">
+                            <i class="bookmark icon"></i> 最新推荐
+                        </div>
+                        <div class="ui segment" v-for="(blog, index) in latestBlogList" :key="index">
+                            <a :href="'detail.html?id=' + blog.id" target="_blank" class="m-black m-text-thin">
+                                《<span v-text="blog.title.length >= 14 ? blog.title.substr(0, 14) + '...' : blog.title">Hello, Blog!</span>》
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- 引入底部 -->
+<div id="footer"></div>
+
+<script src="lib/jquery/jquery-3.3.1.js"></script>
+<script src="lib/semantic-ui/semantic.min.js"></script>
+<script src="js/front-include.js"></script>
+<script src="js/vuejs-2.5.16.js"></script>
+<script src="js/axios-0.18.0.js"></script>
+
+<script>
+    const vm = new Vue({
+        el: '#app',
+        data: {
+            blogList: [],
+            topBlogList: [],
+            totalPage: 1,
+            total: 0,
+            types: [],
+            tags: [],
+            isTop: false,
+            latestBlogList: [],
+            blogParams: {
+                page: 1,
+                title: ""
+            },
+            isAdmin: false
+        },
+        created() {
+            // 获取博客列表
+            axios.get("blogs/page/blogParams", {
+                params: {
+                    page: 1,
+                    published: true
+                }
+            }).then(({data}) => {
+                this.blogList = data.items.filter(blog => !blog.top);
+                this.topBlogList = data.items.filter(blog => blog.top);
+                this.total = data.total;
+                this.totalPage = data.totalPage;
+            }).catch(() => {
+                this.blogList = [];
+                this.topBlogList = [];
+                this.total = 0;
+                this.totalPage = 0;
+            });
+            // 获取topSix
+            axios.get("types/withBlogs").then(({data}) => {
+                // 按分类下对应的博客篇数降序排序
+                let sortedTypes = data.sort((type1, type2) => type2.blogList.length - type1.blogList.length);
+                this.types = sortedTypes.slice(0, 6);
+            }).catch();
+            // 获取topTen
+            axios.get("tags/withBlogs").then(({data}) => {
+                // 按标签下对应的博客篇数降序排序
+                let sortedTags = data.sort((tag1, tag2) => tag2.blogList.length - tag1.blogList.length);
+                this.tags = sortedTags.slice(0, 10);
+            }).catch();
+            // 获取最新推荐博客列表
+            axios.get("blogs/latestThree", {
+                params: {
+                    recommended: true
+                }
+            }).then(({data}) => {
+                this.latestBlogList = data;
+            }).catch();
+            // 获取管理员对象
+            axios.get("/users").then(() => {
+                this.isAdmin = true;
+            }).catch(() => {
+                this.isAdmin = false;
+            });
+        },
+        methods: {
+            prev() {
+                if (this.blogParams.page > 1) {
+                    this.blogParams.page -= 1;
+                }
+            },
+            next() {
+                if (this.blogParams.page < this.totalPage) {
+                    this.blogParams.page += 1;
+                }
+            },
+            index(i) {
+                if (this.totalPage <= 5 || this.blogParams.page <= 3) { //前五页
+                    return i;
+                } else if (this.blogParams.page > this.totalPage - 3) { //后五页
+                    return this.totalPage - 5 + i;
+                } else { //中间的页码
+                    return this.blogParams.page - 3 + i;
+                }
+            },
+            toggleTop(id) {
+                axios.put("/admin/blogs/" + id).then(() => {
+                    this.isTop = !this.isTop;
+                }).catch();
+            }
+        },
+        watch: {
+            blogParams: {
+                deep: true,
+                handler() {
+                    axios.get("blogs/page/blogParams", {
+                        params: {
+                            page: this.blogParams.page,
+                            title: this.blogParams.title,
+                            published: true
+                        }
+                    }).then(({data}) => {
+                        this.blogList = data.items.filter(blog => !blog.top);
+                        this.topBlogList = data.items.filter(blog => blog.top);
+                        this.total = data.total;
+                        this.totalPage = data.totalPage;
+                    }).catch(() => {
+                        this.blogList = [];
+                        this.topBlogList = [];
+                        this.total = 0;
+                        this.totalPage = 0;
+                    });
+                }
+            },
+            isTop: {
+                handler() {
+                    axios.get("blogs/page/blogParams", {
+                        params: {
+                            page: this.blogParams.page,
+                            title: this.blogParams.title,
+                            published: true
+                        }
+                    }).then(({data}) => {
+                        this.blogList = data.items.filter(blog => !blog.top);
+                        this.topBlogList = data.items.filter(blog => blog.top);
+                        this.total = data.total;
+                        this.totalPage = data.totalPage;
+                    }).catch(() => {
+                        this.blogList = [];
+                        this.topBlogList = [];
+                        this.total = 0;
+                        this.totalPage = 0;
+                    });
+                }
+            }
+        }
+    })
+</script>
+
+<script>
+    $('.menu.toggle').click(function () {
+        $('.m-item').toggleClass('m-mobile-hide');
+    })
+</script>
+</body>
+
+</html>
